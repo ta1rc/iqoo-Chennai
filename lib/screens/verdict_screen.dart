@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme.dart';
 import '../engine/scorer.dart';
 import '../widgets/stamp.dart';
@@ -13,12 +14,42 @@ class VerdictScreen extends StatelessWidget {
     required this.verdict,
   });
 
+  String get _summary {
+    final buffer = StringBuffer()
+      ..writeln('Nazar verdict: ${verdict.bandLabel} (risk ${verdict.score})');
+    for (final reason in verdict.reasons) {
+      buffer.writeln('- ${reason.label}: "${reason.evidence}"');
+    }
+    return buffer.toString().trim();
+  }
+
+  Future<void> _copySummary(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: _summary));
+    HapticFeedback.selectionClick();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Verdict copied to clipboard'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Verdict')),
+      appBar: AppBar(
+        title: const Text('Verdict'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.copy_outlined, size: 20),
+            tooltip: 'Copy verdict',
+            onPressed: () => _copySummary(context),
+          ),
+        ],
+      ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -36,7 +67,31 @@ class VerdictScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
+              const Text(
+                'Message analysed',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: NazarColors.ink,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Divider(color: NazarColors.rule, height: 1),
+              const SizedBox(height: 12),
+              Text(
+                originalText,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: monoFontFamily,
+                  fontSize: 12.5,
+                  color: Color(0xFF4A5057),
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 28),
               if (verdict.reasons.isNotEmpty) ...[
                 const Text(
                   'Why',
@@ -50,39 +105,36 @@ class VerdictScreen extends StatelessWidget {
                 const SizedBox(height: 4),
                 const Divider(color: NazarColors.rule, height: 1),
                 const SizedBox(height: 16),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: verdict.reasons.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 16),
-                    itemBuilder: (context, i) {
-                      final reason = verdict.reasons[i];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            reason.label,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: NazarColors.ink,
-                            ),
+                ...verdict.reasons.map(
+                  (reason) => Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          reason.label,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: NazarColors.ink,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '"${reason.evidence}"',
-                            style: const TextStyle(
-                              fontFamily: monoFontFamily,
-                              fontSize: 13,
-                              color: Color(0xFF4A5057),
-                            ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '"${reason.evidence}"',
+                          style: const TextStyle(
+                            fontFamily: monoFontFamily,
+                            fontSize: 13,
+                            color: Color(0xFF4A5057),
                           ),
-                        ],
-                      );
-                    },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ] else
-                const Expanded(
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
                   child: Center(
                     child: Text(
                       'No scam signals found in this message.',
@@ -90,7 +142,7 @@ class VerdictScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               const Divider(color: NazarColors.rule, height: 1),
               const SizedBox(height: 16),
               SizedBox(
