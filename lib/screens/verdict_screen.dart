@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../theme.dart';
 import '../engine/scorer.dart';
 import '../widgets/stamp.dart';
+import '../widgets/risk_meter.dart';
 
 class VerdictScreen extends StatelessWidget {
   final String originalText;
@@ -21,6 +22,17 @@ class VerdictScreen extends StatelessWidget {
       buffer.writeln('- ${reason.label}: "${reason.evidence}"');
     }
     return buffer.toString().trim();
+  }
+
+  Color get _bandColor {
+    switch (verdict.band) {
+      case RiskBand.safe:
+        return NazarColors.safe;
+      case RiskBand.suspicious:
+        return NazarColors.caution;
+      case RiskBand.likelyScam:
+        return NazarColors.danger;
+    }
   }
 
   Future<void> _copySummary(BuildContext context) async {
@@ -47,6 +59,10 @@ class VerdictScreen extends StatelessWidget {
             onPressed: () => _copySummary(context),
           ),
         ],
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: NazarColors.rule),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -56,7 +72,7 @@ class VerdictScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 24),
               Center(child: VerdictStamp(band: verdict.band)),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Center(
                 child: Text(
                   'risk ${verdict.score}',
@@ -64,9 +80,12 @@ class VerdictScreen extends StatelessWidget {
                     fontFamily: monoFontFamily,
                     color: NazarColors.ink,
                     fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              RiskMeter(score: verdict.score, band: verdict.band),
               const SizedBox(height: 28),
               const Text(
                 'Message analysed',
@@ -80,15 +99,23 @@ class VerdictScreen extends StatelessWidget {
               const SizedBox(height: 4),
               const Divider(color: NazarColors.rule, height: 1),
               const SizedBox(height: 12),
-              Text(
-                originalText,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontFamily: monoFontFamily,
-                  fontSize: 12.5,
-                  color: Color(0xFF4A5057),
-                  height: 1.4,
+              Container(
+                padding: const EdgeInsets.only(left: 12),
+                decoration: const BoxDecoration(
+                  border: Border(
+                    left: BorderSide(color: NazarColors.rule, width: 2),
+                  ),
+                ),
+                child: Text(
+                  originalText,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: monoFontFamily,
+                    fontSize: 12.5,
+                    color: Color(0xFF4A5057),
+                    height: 1.4,
+                  ),
                 ),
               ),
               const SizedBox(height: 28),
@@ -108,24 +135,42 @@ class VerdictScreen extends StatelessWidget {
                 ...verdict.reasons.map(
                   (reason) => Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: Column(
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          reason.label,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: NazarColors.ink,
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6, right: 10),
+                          child: Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _bandColor,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '"${reason.evidence}"',
-                          style: const TextStyle(
-                            fontFamily: monoFontFamily,
-                            fontSize: 13,
-                            color: Color(0xFF4A5057),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                reason.label,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: NazarColors.ink,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '"${reason.evidence}"',
+                                style: const TextStyle(
+                                  fontFamily: monoFontFamily,
+                                  fontSize: 13,
+                                  color: Color(0xFF4A5057),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],

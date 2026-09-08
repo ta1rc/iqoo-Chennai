@@ -143,7 +143,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _sampleSection(String title, List<Map<String, String>> samples) {
+  Widget _sampleSection(
+    String title,
+    List<Map<String, String>> samples,
+    Color dotColor,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -169,12 +173,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              child: Text(sample['label']!),
+              child: Row(
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: dotColor,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(sample['label']!),
+                ],
+              ),
             ),
           ),
         ),
       ],
     );
+  }
+
+  Color _bandColorFor(String? bandLabel) {
+    switch (bandLabel) {
+      case 'LIKELY SCAM':
+        return NazarColors.danger;
+      case 'SUSPICIOUS':
+        return NazarColors.caution;
+      default:
+        return NazarColors.safe;
+    }
   }
 
   @override
@@ -203,6 +231,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(1),
+            child: Divider(height: 1, thickness: 1, color: NazarColors.rule),
+          ),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -265,9 +297,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 28),
-                _sampleSection('Try a scam example', scamSamples),
+                _sampleSection(
+                  'Try a scam example',
+                  scamSamples,
+                  NazarColors.danger,
+                ),
                 const SizedBox(height: 12),
-                _sampleSection('Try a legitimate example', legitSamples),
+                _sampleSection(
+                  'Try a legitimate example',
+                  legitSamples,
+                  NazarColors.safe,
+                ),
                 if (_history.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   const Divider(color: NazarColors.rule, height: 1),
@@ -302,6 +342,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Row(
                         children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            margin: const EdgeInsets.only(right: 10),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _bandColorFor(h['band']),
+                            ),
+                          ),
                           Expanded(
                             child: Text(
                               h['text'] ?? '',
