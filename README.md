@@ -2,6 +2,12 @@
 
 Nazar reads an SMS or pasted message and stamps a verdict on it — SAFE, SUSPICIOUS, or LIKELY SCAM — entirely on-device, in under 50ms, with zero network calls.
 
+<p align="center">
+  <img src="docs/screenshot_likely_scam.png" width="280" alt="Likely scam verdict"/>
+  &nbsp;&nbsp;
+  <img src="docs/screenshot_likely_safe.png" width="280" alt="Likely safe verdict"/>
+</p>
+
 ## Why this can't be a cloud API
 
 Two reasons, both non-negotiable for this use case:
@@ -76,6 +82,28 @@ flutter test
 ```
 
 `test/corpus_test.dart` runs a 30-message labelled corpus: 15 scams (digital arrest, KYC expiry, courier/customs seizure, lottery, fake refund, OTP harvest — English, Hinglish, and Tanglish variants) and 15 legitimate messages (real bank debit alerts, genuine OTPs, delivery notifications, appointment reminders). The harder and more meaningful assertion is on the legitimate set: proving real HDFC/ICICI/SBI-style alerts score under 30, not just that scams score high. This is a regression corpus, not a benchmark — 30 labelled messages don't support an accuracy percentage claim.
+
+```
+00:00 +29: legitimate messages should score under 30 (no false positives) work meeting
+00:00 +30: All tests passed!
+```
+
+All 15 scam messages score ≥30 (suspicious or likely-scam) and all 15 legitimate messages score under 30 — zero false positives on the legitimate set.
+
+## Verified: no INTERNET permission in the release build
+
+```bash
+flutter build apk --release
+aapt dump permissions build/app/outputs/flutter-apk/app-release.apk
+```
+
+```
+package: com.nazar.nazar
+permission: com.nazar.nazar.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission: name='com.nazar.nazar.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+```
+
+That's it — no `android.permission.INTERNET` anywhere in the merged manifest of the actual release APK, not just the source manifest. `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` is a self-defined, Android-internal broadcast-receiver permission with no relation to network access.
 
 ## What ships at Chennai (12–13 Sep)
 
