@@ -46,6 +46,6 @@ The highest matching multiplier applies once (multipliers don't stack), keeping 
 
 ## Limitations, stated plainly
 
-- Keyword matching, not semantic understanding — a message that describes a scam pattern without using these terms won't be flagged. This is exactly the gap Gemma reasoning closes at Chennai.
+- Keyword matching, not semantic understanding — a message that describes a scam pattern without using these terms won't be flagged. This is exactly the gap the planned on-device Gemma reasoning step is meant to close.
 - Weights and multipliers are hand-tuned against a 30-message corpus, not calibrated against a large labelled dataset. Treat scores as a regression signal, not a probability.
-- No handling of adversarial obfuscation (leetspeak, zero-width characters, deliberate misspelling) — out of scope for tonight.
+- No handling of adversarial obfuscation (leetspeak, zero-width characters, deliberate misspelling) — out of scope for the current build.

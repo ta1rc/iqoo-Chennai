@@ -1,5 +1,13 @@
 # Nazar (नज़र)
 
+**An offline scam-message detector for Android. No internet permission, by design.**
+
+![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-0175C2?logo=dart&logoColor=white)
+![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white)
+![Network](https://img.shields.io/badge/network-none-1C1F21)
+![Tests](https://img.shields.io/badge/tests-30%2F30%20passing-2E7D32)
+
 Nazar reads an SMS or pasted message and stamps a verdict on it — SAFE, SUSPICIOUS, or LIKELY SCAM — entirely on-device, in under 50ms, with zero network calls.
 
 <p align="center">
@@ -48,8 +56,8 @@ This isn't "runs fine in airplane mode." It's "cannot reach the network even if 
 ┌─────────────────────────────────────────────┐
 │           ScamAnalyzer  (interface)          │
 │                                               │
-│  RuleBasedAnalyzer  ← ships tonight           │
-│  HybridAnalyzer     ← Chennai (rules pre-     │
+│  RuleBasedAnalyzer  ← current build           │
+│  HybridAnalyzer     ← planned (rules pre-     │
 │                        filter, Gemma reasons  │
 │                        over survivors)        │
 └───────────────────────┬───────────────────────┘
@@ -62,7 +70,7 @@ This isn't "runs fine in airplane mode." It's "cannot reach the network even if 
 └─────────────────────────────────────────────┘
 ```
 
-`lib/engine/` has no Flutter imports — it's plain, unit-testable Dart. The `ScamAnalyzer` interface is the seam: Chennai swaps in a `HybridAnalyzer` that pre-filters with these same rules and hands survivors to an on-device Gemma model, without touching the UI or the `Verdict` type anything downstream depends on.
+`lib/engine/` has no Flutter imports — it's plain, unit-testable Dart. The `ScamAnalyzer` interface is the seam: a `HybridAnalyzer` can be swapped in that pre-filters with these same rules and hands survivors to an on-device Gemma model, without touching the UI or the `Verdict` type anything downstream depends on.
 
 ### The scoring model
 
@@ -105,7 +113,7 @@ uses-permission: name='com.nazar.nazar.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
 
 That's it — no `android.permission.INTERNET` anywhere in the merged manifest of the actual release APK, not just the source manifest. `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` is a self-defined, Android-internal broadcast-receiver permission with no relation to network access.
 
-## What ships at Chennai (12–13 Sep)
+## Roadmap
 
 - **Whisper** for live call transcription (replacing paste-only input)
 - **Gemma**, quantised and running on the NPU, reasoning over messages the rule engine flags as ambiguous — via the `HybridAnalyzer` stub already in `lib/engine/analyzer.dart`
@@ -113,4 +121,4 @@ That's it — no `android.permission.INTERNET` anywhere in the merged manifest o
 - Call-screen overlay
 - Office Kit model sideload
 
-Tonight's build is fully on-device with no network capability — not "runs on the NPU." That claim is accurate for Chennai, not for this build.
+The current build is fully on-device with no network capability. It does not yet run a model on the NPU; that arrives with the Gemma-based `HybridAnalyzer` above.
